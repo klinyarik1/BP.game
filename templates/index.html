@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>CyberSafe OS</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div class="desktop">
+        <div class="taskbar">
+            <div class="start-btn">🇧🇾</div>
+            <div class="xp-bar">XP: <span id="xp-val">100</span></div>
+        </div>
+
+        <div id="window" class="window hidden">
+            <div class="window-header">
+                <span id="win-title">Приложение</span>
+                <button class="close-btn">×</button>
+            </div>
+            <div class="window-content">
+                <p id="level-text"></p>
+                <div id="options"></div>
+            </div>
+        </div>
+
+        <div id="officer-overlay" class="officer-modal hidden">
+            <div class="officer-card">
+                <img src="/static/img/officer.png" alt="Милиционер">
+                <h3>ВАЖНОЕ РАЗЪЯСНЕНИЕ</h3>
+                <p id="law-text"></p>
+                <button onclick="nextLevel()">Принято</button>
+            </div>
+        </div>
+        
+        <div class="icons">
+            <div class="icon" onclick="openLevel(currentLevel)">
+                <img src="/static/img/folder.png">
+                <span>Задания</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="widgets">
+        <div class="widget clock" id="real-clock">12:00</div>
+        <div class="widget status">Статус: <span id="security-status">Безопасно</span></div>
+    </div>
+
+    <div class="shortcuts">
+        <div class="shortcut" onclick="openApp('mail')">
+            <img src="/static/img/mail_icon.png">
+            <span>Почта</span>
+        </div>
+        <div class="shortcut" onclick="openApp('telegram')">
+            <img src="/static/img/tg_icon.png">
+            <span>Telegram</span>
+        </div>
+        <div class="shortcut" onclick="openApp('bank')">
+            <img src="/static/img/bank_icon.png">
+            <span>БеларусБанк</span>
+        </div>
+    </div>
+
+    <div id="analysis-tool" class="window hidden analysis-mode">
+        <div class="window-header"><span>Инструмент анализа</span><button onclick="closeAnalysis()">×</button></div>
+        <div class="window-content">
+            <div class="code-viewer" id="code-content">
+                </div>
+            <div class="actions">
+                <button class="action-btn block-btn" onclick="processThreat('block')">Заблокировать / Спам</button>
+                <button class="action-btn report-btn" onclick="processThreat('report')">Сообщить в МВД</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentLevel = 1;
+        let xp = 100;
+
+        function openLevel(id) {
+            $.get('/get_level/' + id, function(data) {
+                if(data.end) {
+                    alert("Курс пройден! Ваша итоговая безопасность: " + xp);
+                    return;
+                }
+                $('#win-title').text(data.app + " - " + data.title);
+                $('#level-text').text(data.text);
+                $('#options').empty();
+                data.options.forEach(opt => {
+                    $('#options').append(`<button class="opt-btn" onclick="makeChoice(${opt.xp}, '${data.law}')">${opt.text}</button>`);
+                });
+                $('#window').removeClass('hidden');
+            });
+        }
+
+        function makeChoice(change, law) {
+            xp += change;
+            $('#xp-val').text(xp);
+            $('#window').addClass('hidden');
+            $('#law-text').text(law);
+            $('#officer-overlay').removeClass('hidden');
+        }
+
+        function nextLevel() {
+            $('#officer-overlay').addClass('hidden');
+            currentLevel++;
+            setTimeout(() => openLevel(currentLevel), 500);
+        }
+        
+    </script>
+</body>
+</html>
